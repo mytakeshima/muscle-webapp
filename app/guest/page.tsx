@@ -1,5 +1,3 @@
-"use client";  // ←これを最上部に追加！
-
 import GuestForm from "@/components/GuestForm";
 import ResultPanel from "@/components/ResultPanel";
 import { useState } from "react";
