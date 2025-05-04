@@ -1,3 +1,5 @@
+// record/page.tsx
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,6 +16,11 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+// 追加インポート
+import Link from "next/link";
+import { UserStatusBar } from "@/components/UserStatusBar";
+
+
 
 export default function RecordPage() {
   const [user, setUser] = useState<any>(null);
@@ -97,15 +104,18 @@ export default function RecordPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">筋トレ記録</h1>
-        <button
-          onClick={() => logout()}
-          className="text-sm text-red-500 underline"
-        >
-          ログアウト
-        </button>
+    <UserStatusBar /> {/* ✅ 正しく追加 */}
+
+    <div className="flex justify-between items-center mb-4">
+      <h1 className="text-2xl font-bold">筋トレ記録</h1>
+      <div className="space-x-4">
+        <Link href="/profile" className="text-blue-600 underline text-sm">
+          プロフィール設定
+        </Link>
+        
       </div>
+    </div>
+
 
       <WorkoutForm onSave={fetchWorkouts} />
 
