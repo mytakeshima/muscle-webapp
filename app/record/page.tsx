@@ -5,6 +5,7 @@ import { WorkoutForm } from "@/components/WorkoutForm";
 import { WorkoutList } from "@/components/WorkoutList";
 import { WorkoutChart } from "@/components/WorkoutChart";
 import { db, auth } from "@/lib/firebase";
+import { loginWithGoogle, logout } from "@/lib/auth";
 import {
   collection,
   getDocs,
@@ -15,23 +16,21 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 export default function RecordPage() {
+  const [user, setUser] = useState<any>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [appliedStartDate, setAppliedStartDate] = useState("");
   const [appliedEndDate, setAppliedEndDate] = useState("");
 
   const fetchWorkouts = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!auth.currentUser) return;
 
     setLoading(true);
-
     const q = query(
       collection(db, "workouts"),
-      where("uid", "==", user.uid),
+      where("uid", "==", auth.currentUser.uid),
       orderBy("date", "asc")
     );
 
@@ -56,13 +55,13 @@ export default function RecordPage() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
       if (user) {
         fetchWorkouts();
       } else {
         setWorkouts([]);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -72,22 +71,41 @@ export default function RecordPage() {
     return true;
   });
 
-  // ✅ React 向けに文字列化した date をもつ配列を作成
   const listData = filteredWorkouts.map((w) => ({
     ...w,
-    date:
-      w.date instanceof Date
-        ? w.date.toLocaleDateString("ja-JP", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })
-        : w.date,
+    date: w.date.toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }),
   }));
+
+  // 🔽 未ログインならログインボタンを表示
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <h2 className="text-2xl font-bold mb-6">ログインしてください</h2>
+        <button
+          onClick={() => loginWithGoogle()}
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Googleでログイン
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">筋トレ記録</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">筋トレ記録</h1>
+        <button
+          onClick={() => logout()}
+          className="text-sm text-red-500 underline"
+        >
+          ログアウト
+        </button>
+      </div>
 
       <WorkoutForm onSave={fetchWorkouts} />
 
