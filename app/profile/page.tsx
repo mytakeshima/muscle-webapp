@@ -13,6 +13,7 @@ import {
   estimateBodyFat,
   classifyBodyType,
 } from "@/utils/bodyAnalysis";
+import { BodyTypeChart } from "@/components/BodyTypeChart"; // グラフ追加
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -118,6 +119,9 @@ export default function ProfilePage() {
           <p>体脂肪率: {fat} %</p>
           <p>BMI: {bmi.toFixed(1)}</p>
           <p>体型分類: {bodyType}</p>
+          <div className="mt-6">
+            <BodyTypeChart bmi={bmi} bodyFat={fat} />
+          </div>
         </div>
       )}
     </div>
