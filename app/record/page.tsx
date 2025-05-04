@@ -12,7 +12,7 @@ import {
   where,
   orderBy,
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth"; // ✅ これを追加
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function RecordPage() {
   const [workouts, setWorkouts] = useState<any[]>([]);
@@ -23,7 +23,6 @@ export default function RecordPage() {
   const [appliedStartDate, setAppliedStartDate] = useState("");
   const [appliedEndDate, setAppliedEndDate] = useState("");
 
-  // データ取得
   const fetchWorkouts = async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -39,11 +38,11 @@ export default function RecordPage() {
     const snapshot = await getDocs(q);
     const data = snapshot.docs.map((doc) => {
       const d = doc.data();
-      const dateObj = d.date.toDate(); // Firebase Timestamp → JS Date
+      const dateObj = d.date.toDate();
       return {
         id: doc.id,
         date: dateObj,
-        isoDate: dateObj.toISOString().slice(0, 10), // YYYY-MM-DD
+        isoDate: dateObj.toISOString().slice(0, 10),
         exercise: d.exercise,
         weight: d.weight,
         reps: d.reps,
@@ -58,21 +57,33 @@ export default function RecordPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        fetchWorkouts(); // ← ログイン確認後に呼ぶ
+        fetchWorkouts();
       } else {
         setWorkouts([]);
       }
     });
-  
+
     return () => unsubscribe();
   }, []);
 
-  // フィルタリング
   const filteredWorkouts = workouts.filter((w) => {
     if (appliedStartDate && w.isoDate < appliedStartDate) return false;
     if (appliedEndDate && w.isoDate > appliedEndDate) return false;
     return true;
   });
+
+  // ✅ React 向けに文字列化した date をもつ配列を作成
+  const listData = filteredWorkouts.map((w) => ({
+    ...w,
+    date:
+      w.date instanceof Date
+        ? w.date.toLocaleDateString("ja-JP", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })
+        : w.date,
+  }));
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -117,8 +128,8 @@ export default function RecordPage() {
         </button>
       </div>
 
-      <WorkoutList workouts={filteredWorkouts} loading={loading} />
-      <WorkoutChart workouts={filteredWorkouts} />
+      <WorkoutList workouts={listData} loading={loading} onDelete={fetchWorkouts} />
+      <WorkoutChart workouts={listData} />
     </div>
   );
 }
