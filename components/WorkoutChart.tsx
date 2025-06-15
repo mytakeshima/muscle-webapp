@@ -112,7 +112,7 @@ export function WorkoutChart({ workouts }: Props) {
           </LineChart>
         </ResponsiveContainer>
       ) : (
-        <p>この種目の記録はまだありません。</p>
+        <p>この種目の記録はまだありません!。</p>
       )}
     </div>
   );
